@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   GoogleMap,
   Marker,
   Polyline,
-  LoadScriptNext,
+  
+  useJsApiLoader,
 } from "@react-google-maps/api";
 import { Container, Button, Box, Typography } from "@mui/material";
 
@@ -22,6 +23,13 @@ const containerStyle = {
 export default function Track({ params }) {
   const router = useRouter();
   const { id } = params;
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY,
+   
+  });
+
+ 
 
   const [position, setPosition] = useState(warehouseLocation);
 
@@ -74,7 +82,7 @@ export default function Track({ params }) {
   };
 
   return (
-    <Container  maxWidth="md">
+    <Container maxWidth="md">
       <Box
         display="flex"
         flexDirection="column"
@@ -84,9 +92,9 @@ export default function Track({ params }) {
         <Typography variant="h4" component="h1" gutterBottom>
           Tracking Item {id}
         </Typography>
-        <LoadScriptNext
-          googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY}
-        >
+        {!isLoaded ? <Typography variant="h4" component="h2" >
+          Loading...
+        </Typography> : (
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={position}
@@ -100,7 +108,8 @@ export default function Track({ params }) {
               options={{ strokeColor: "#FF0000" }}
             />
           </GoogleMap>
-        </LoadScriptNext>
+        )}
+
         <Button
           style={{ marginTop: "1rem" }}
           variant="contained"
@@ -113,82 +122,3 @@ export default function Track({ params }) {
     </Container>
   );
 }
-
-// const router = useRouter();
-
-// const { id } = params;
-
-// const [position, setPosition] = useState(warehouseLocation);
-// const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
-
-// useEffect(() => {
-//   if (!id) return;
-
-//   const moveTowardsDestination = () => {
-//     setPosition((prevPosition) => {
-//       const deltaLat = destinationLocation.lat - prevPosition.lat;
-//       const deltaLng = destinationLocation.lng - prevPosition.lng;
-//       const distance = Math.sqrt(deltaLat * deltaLat + deltaLng * deltaLng);
-
-//       // Stop moving when close enough to the destination
-//       if (distance < 0.01) {
-//         clearInterval(interval);
-//         return destinationLocation;
-//       }
-
-//       // Calculate step size
-//       const stepSize = 0.05; // Adjust this value to control the speed
-//       const stepLat = (deltaLat / distance) * stepSize;
-//       const stepLng = (deltaLng / distance) * stepSize;
-
-//       return {
-//         lat: prevPosition.lat + stepLat,
-//         lng: prevPosition.lng + stepLng,
-//       };
-//     });
-//   };
-
-//   const interval = setInterval(moveTowardsDestination, 1000); // Update position every second
-
-//   return () => clearInterval(interval);
-// }, [id]);
-
-// const handleCompleteDelivery = () => {
-//   alert("Successfully Delivered");
-//   router.push("/");
-// };
-
-//  <Container className="global" maxWidth="md">
-//  <Box
-//    display="flex"
-//    flexDirection="column"
-//    alignItems="center"
-//    justifyContent="center"
-//  >
-//    <h1 style={{ marginBottom: "1rem" }}>Tracking Item {id}</h1>
-//    <LoadScript googleMapsApiKey={process.env.GOOGLE_MAP_API_KEY}>
-//      <GoogleMap
-
-//        mapContainerStyle={containerStyle}
-//        center={position}
-//        zoom={6}
-//      >
-//        <Marker position={warehouseLocation} label="Warehouse" />
-//        <Marker position={destinationLocation} label="Destination" />
-//        <Marker position={position} label="Item" />
-//        <Polyline
-//          path={[warehouseLocation, position, destinationLocation]}
-//          options={{ strokeColor: "#FF0000" }}
-//        />
-//      </GoogleMap>
-//    </LoadScript>
-//    <Button
-//      style={{ marginTop: "1rem" }}
-//      variant="contained"
-//      color="primary"
-//      onClick={handleCompleteDelivery}
-//    >
-//      Complete Delivery
-//    </Button>
-//  </Box>
-// </Container>
